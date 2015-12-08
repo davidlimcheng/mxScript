@@ -9,6 +9,7 @@ Promise.promisifyAll(inquirer);
 Promise.promisifyAll(csv);
 
 var getFilename = function() {
+  console.log('\nReturned leads will be written to returnedLeads/leads.csv\nAny existing values will be overwritten.\n');
   var allCSVFiles = [];
 
   //Get list of all csv files in directory
@@ -64,22 +65,21 @@ var parseFile = function() {
 };
 
 var runDig = function() {
-  var leads = [];
+  var timestamp = new Date();
+  var leads = ['Returned leads (' + timestamp.toDateString() + '):'];
   var containsASPMX = function(e) {
     return new Promise(function(resolve) {
       exec('dig mx ' + e, function(error, stdout, stderr) {
         if (stdout.indexOf('ANSWER SECTION') === -1) {
-          console.log(e + ' is not a valid domain');
+          resolve(leads);
         } else {
           if (stdout.indexOf('aspmx') === -1) {
-            console.log(e + ' is not on Google Mail server');
             leads.push(e);
+            resolve(leads);
           } else {
-            console.log(e + ' is on Google Mail server');
+            resolve(leads);
           }
         }
-
-        resolve(leads);
       });
     });
   };
@@ -90,12 +90,23 @@ var runDig = function() {
         Promise.each(domains, containsASPMX)
         .then(function() {
           resolve(leads);
+        })
+        .catch(function(err) {
+          throw err;
         });
       });
   });
 };
 
-runDig()
-  .then(function(leads) {
-    console.log('Valid leads are: ' + leads);
-  });
+var writeLeads = function() {
+  runDig()
+    .then(function(leads) {
+      console.log('Writing to file...');
+      var writer = csv.createCsvFileWriter('returnedLeads/leads.csv', {flags: 'w', separator: '\n'});
+      writer.writeRecordAsync(leads);
+      writer.writeStream.end();
+      console.log('Complete.');
+    });
+};
+
+writeLeads();
