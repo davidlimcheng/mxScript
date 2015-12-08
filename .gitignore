@@ -27,4 +27,4 @@ build/Release
 node_modules
 
 # Generated csv's
-returnedLeads/leads.csv
+returnedLeads
