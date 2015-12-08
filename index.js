@@ -2,6 +2,7 @@ var fs = require('fs');
 var inquirer = require('inquirer');
 var csv = require('ya-csv');
 var Promise = require('bluebird');
+var exec = Promise.promisify(require('child_process').exec);
 
 Promise.promisifyAll(fs);
 Promise.promisifyAll(inquirer);
@@ -63,12 +64,38 @@ var parseFile = function() {
 };
 
 var runDig = function() {
+  var leads = [];
+  var containsASPMX = function(e) {
+    return new Promise(function(resolve) {
+      exec('dig mx ' + e, function(error, stdout, stderr) {
+        if (stdout.indexOf('ANSWER SECTION') === -1) {
+          console.log(e + ' is not a valid domain');
+        } else {
+          if (stdout.indexOf('aspmx') === -1) {
+            console.log(e + ' is not on Google Mail server');
+            leads.push(e);
+          } else {
+            console.log(e + ' is on Google Mail server');
+          }
+        }
+
+        resolve(leads);
+      });
+    });
+  };
+
   return new Promise(function(resolve) {
     parseFile()
       .then(function(domains) {
-        console.log(domains);
+        Promise.each(domains, containsASPMX)
+        .then(function() {
+          resolve(leads);
+        });
       });
   });
 };
 
-runDig();
+runDig()
+  .then(function(leads) {
+    console.log('Valid leads are: ' + leads);
+  });
