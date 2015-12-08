@@ -91,6 +91,7 @@ var runDig = function() {
   return new Promise(function(resolve) {
     parseFile()
       .then(function(domains) {
+        console.log('Running command script...');
         Promise.each(domains, containsASPMX)
         .then(function() {
           resolve(leads);
@@ -110,7 +111,14 @@ var writeLeads = function() {
       var writer = csv.createCsvFileWriter('returnedLeads/leads.csv', {flags: 'w', separator: '\n'});
       writer.writeRecordAsync(leads);
       writer.writeStream.end();
-      console.log('Complete.');
+      return;
+    })
+    .then(function() {
+      console.log('Completed.');
+      return;
+    })
+    .catch(function(err) {
+      throw err;
     });
 };
 
