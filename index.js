@@ -8,11 +8,11 @@ Promise.promisifyAll(fs);
 Promise.promisifyAll(inquirer);
 Promise.promisifyAll(csv);
 
+//Get list of all csv files in directory
 var getFilename = function() {
   console.log('\nReturned leads will be written to returnedLeads/leads.csv\nAny existing values will be overwritten.\n');
   var allCSVFiles = [];
 
-  //Get list of all csv files in directory
   return new Promise(function(resolve) {
     fs.readdirAsync('csvFiles')
       .then(function(files) {
@@ -44,6 +44,7 @@ var getFilename = function() {
   });
 };
 
+//Parse file, and return an array of listed domain names.
 var parseFile = function() {
   var domains = [];
   return new Promise(function(resolve) {
@@ -64,9 +65,12 @@ var parseFile = function() {
   });
 };
 
+//Run dig mx command on each listed domain, and return an array of domains not on Google Mail server.
+//Includes timestamp of when the script was ran.
 var runDig = function() {
   var timestamp = new Date();
   var leads = ['Returned leads (' + timestamp.toDateString() + '):'];
+
   var containsASPMX = function(e) {
     return new Promise(function(resolve) {
       exec('dig mx ' + e, function(error, stdout, stderr) {
@@ -98,6 +102,7 @@ var runDig = function() {
   });
 };
 
+//Write list of returned domains to csv file
 var writeLeads = function() {
   runDig()
     .then(function(leads) {
