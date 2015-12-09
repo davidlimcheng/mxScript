@@ -91,7 +91,7 @@ var runDig = function() {
   return new Promise(function(resolve) {
     parseFile()
       .then(function(domains) {
-        console.log('Running command script...');
+        console.log('\nRunning command script...');
         Promise.each(domains, containsASPMX)
         .then(function() {
           resolve(leads);
@@ -114,7 +114,7 @@ var writeLeads = function() {
       return;
     })
     .then(function() {
-      console.log('Completed.');
+      console.log('Complete.\n');
       return;
     })
     .catch(function(err) {
