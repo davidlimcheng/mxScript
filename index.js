@@ -74,10 +74,10 @@ var runDig = function() {
   var containsASPMX = function(e) {
     return new Promise(function(resolve) {
       exec('dig mx ' + e, function(error, stdout, stderr) {
-        if (stdout.indexOf('ANSWER SECTION') === -1) {
+        if (stdout.toUpperCase().indexOf('ANSWER SECTION') === -1) {
           resolve(leads);
         } else {
-          if (stdout.indexOf('aspmx') === -1) {
+          if (stdout.toUpperCase().indexOf('ASPMX') === -1) {
             leads.push(e);
             resolve(leads);
           } else {
